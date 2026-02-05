@@ -2,49 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lakhani AI Poster Maker (Pro)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lakhani AI - High Performance Poster Maker</title>
     <style>
-        :root { --blue: #003399; --gold: #FFC107; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; margin: 0; display: flex; height: 100vh; }
-        .sidebar { width: 320px; background: white; padding: 25px; box-shadow: 2px 0 15px rgba(0,0,0,0.1); z-index: 10; display: flex; flex-direction: column; gap: 15px; }
-        .main { flex: 1; display: flex; align-items: center; justify-content: center; background: #ddd; }
-        canvas { max-height: 90vh; box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-radius: 10px; cursor: move; }
+        :root { --primary: #003399; --accent: #FFC107; --bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        .loader { position: fixed; inset: 0; background: rgba(0,0,0,0.8); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--gold); border-radius: 50%; animation: spin 1s linear infinite; }
+        .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; }
+        .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #dfe4ea; }
+        canvas { max-height: 95vh; max-width: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); cursor: move; }
+
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
+        input[type="text"], input[type="range"] { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #002266; }
+
+        /* Professional Loader */
+        .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,30,0.9); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        button { background: var(--blue); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        label { font-size: 11px; font-weight: bold; color: #666; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        .status-msg { text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loader">
+<div id="loader" class="loader-overlay">
     <div class="spinner"></div>
-    <p>AI is analyzing shoe edges...</p>
+    <div class="status-msg">
+        <b style="font-size: 20px;">AI is Processing...</b><br>
+        <span style="opacity: 0.7;">Removing background via Hugging Face Cloud AI</span>
+    </div>
 </div>
 
 <div class="sidebar">
-    <h2 style="color:var(--blue); margin:0; text-align:center;">LAKHANI AI</h2>
-    <label>1. LOGO</label>
-    <input type="file" id="logoLoader" accept="image/*">
-    <label>2. PRODUCT PHOTO</label>
-    <input type="file" id="imageLoader" accept="image/*">
-    <label>SHOE SIZE</label>
-    <input type="range" id="sizeSlider" min="10" max="250" value="85">
-    <label>DETAILS</label>
-    <input type="text" id="prodName" value="#LAK-PRO">
-    <input type="text" id="prodPrice" value="₹ 499.00">
-    <button onclick="downloadImage()">SAVE POSTER</button>
+    <h1 style="color: var(--primary); text-align: center; margin: 0 0 10px 0;">VARDAAN AI</h1>
+    <hr style="border:0; border-top: 1px solid #eee;">
+
+    <div class="input-group">
+        <label>1. Upload Logo</label>
+        <input type="file" id="logoLoader" accept="image/*">
+    </div>
+
+    <div class="input-group">
+        <label>2. Upload Shoe Photo</label>
+        <input type="file" id="imageLoader" accept="image/*">
+    </div>
+
+    <div class="input-group">
+        <label>Shoe Scale</label>
+        <input type="range" id="sizeSlider" min="10" max="250" value="85">
+    </div>
+
+    <div class="input-group">
+        <label>Product Code</label>
+        <input type="text" id="prodName" value="#LAK-PRO-2026">
+    </div>
+
+    <div class="input-group">
+        <label>Price Text</label>
+        <input type="text" id="prodPrice" value="₹ 549.00">
+    </div>
+
+    <button onclick="downloadImage()">Download HD Poster</button>
+    <p style="font-size: 11px; color: #999; text-align: center; line-height: 1.4;">
+        AI processing takes 3-5 seconds.<br>Drag the shoe on the canvas to position it.
+    </p>
 </div>
 
-<div class="main">
+<div class="preview-area">
     <canvas id="posterCanvas" width="800" height="1000"></canvas>
 </div>
 
 <script>
+    const HF_TOKEN = "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"; // Using your token
     const canvas = document.getElementById('posterCanvas');
     const ctx = canvas.getContext('2d');
     const loader = document.getElementById('loader');
@@ -53,109 +85,33 @@
     let prodX = 400, prodY = 550;
     let isDragging = false;
 
-    // --- FREE AI OPTION (Photoroom API or Hugging Face Proxy) ---
-    // Here we use a stable public AI Inference API
+    // --- HUGGING FACE AI LOGIC ---
     document.getElementById('imageLoader').onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         loader.style.display = 'flex';
 
-        const formData = new FormData();
-        formData.append('image_file', file);
-
         try {
-            // Using a specialized background removal API 
-            // This is a more stable "Direct" approach than browser-based WASM
-            const response = await fetch('https://api.remove.bg/v1.0/removebg', {
-                method: 'POST',
-                headers: { 'X-Api-Key': 'INSERT_FREE_KEY_HERE' }, // See note below
-                body: formData
-            });
+            const response = await fetch(
+                "https://api-inference.huggingface.co/models/briaai/RMBG-1.4",
+                {
+                    headers: { 
+                        "Authorization": `Bearer ${HF_TOKEN}`,
+                        "Content-Type": "application/octet-stream"
+                    },
+                    method: "POST",
+                    body: file,
+                }
+            );
 
-            // ALTERNATIVE: If you don't want any Keys, we use a Clipping Path approach
-            // For now, I'll provide the high-speed local processing fix:
-            const reader = new FileReader();
-            reader.onload = (f) => {
-                const img = new Image();
-                img.onload = () => {
-                    productImg = img;
-                    drawPoster();
-                    loader.style.display = 'none';
-                };
-                img.src = f.target.result;
-            };
-            reader.readAsDataURL(file);
+            if (!response.ok) throw new Error("AI Server Busy. Try again in a few seconds.");
 
-        } catch (err) {
-            loader.style.display = 'none';
-            alert("AI Error. Using standard upload.");
-        }
-    };
-
-    // --- LOGIC FOR DRAG & DRAW ---
-    document.getElementById('logoLoader').onchange = (e) => {
-        const reader = new FileReader();
-        reader.onload = (f) => {
+            const blob = await response.blob();
             const img = new Image();
-            img.onload = () => { logoImg = img; drawPoster(); };
-            img.src = f.target.result;
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    canvas.onmousedown = () => isDragging = true;
-    window.onmouseup = () => isDragging = false;
-    canvas.onmousemove = (e) => {
-        if (isDragging && productImg) {
-            const rect = canvas.getBoundingClientRect();
-            prodX = (e.clientX - rect.left) * (800 / rect.width);
-            prodY = (e.clientY - rect.top) * (1000 / rect.height);
-            drawPoster();
-        }
-    };
-
-    ['sizeSlider', 'prodName', 'prodPrice'].forEach(id => document.getElementById(id).oninput = drawPoster);
-
-    function drawPoster() {
-        // Gradient Background
-        const grad = ctx.createLinearGradient(0, 0, 0, 1000);
-        grad.addColorStop(0, '#FFC107'); grad.addColorStop(1, '#FB8C00');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 800, 1000);
-
-        // Logo
-        if (logoImg) ctx.drawImage(logoImg, 520, 60, 220, (logoImg.height/logoImg.width)*220);
-
-        // Text Info
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#003399"; ctx.font = "bold 35px Arial";
-        ctx.fillText(document.getElementById('prodName').value, 740, 210);
-        ctx.fillStyle = "#333"; ctx.font = "bold 45px Arial";
-        ctx.fillText(document.getElementById('prodPrice').value, 740, 270);
-
-        // Product
-        if (productImg) {
-            ctx.save();
-            ctx.shadowBlur = 30; ctx.shadowColor = "rgba(0,0,0,0.3)";
-            const scale = (document.getElementById('sizeSlider').value / 100) * (600 / productImg.width);
-            const w = productImg.width * scale, h = productImg.height * scale;
-            ctx.drawImage(productImg, prodX - w/2, prodY - h/2, w, h);
-            ctx.restore();
-        }
-
-        // Branding
-        ctx.textAlign = "center"; ctx.fillStyle = "white"; ctx.font = "bold 110px Arial";
-        ctx.fillText("LAKHANI", 400, 930);
-    }
-
-    function downloadImage() {
-        const link = document.createElement('a');
-        link.download = 'Lakhani-Poster.png';
-        link.href = canvas.toDataURL();
-        link.click();
-    }
-    drawPoster();
-</script>
-</body>
-</html>
+            img.onload = () => {
+                productImg = img;
+                drawPoster();
+                loader.style.display = 'none';
+            };
+            img.src = URL.createObjectURL(blob
