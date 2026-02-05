@@ -2,35 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lakhani Pro AI Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lakhani AI Pro - Online Version</title>
     <script src="https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.5/dist/index.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; gap: 20px; }
-        .sidebar { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 300px; display: flex; flex-direction: column; gap: 15px; }
-        canvas { border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); cursor: move; background: #fff; width: 500px; height: auto; }
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #fff; border-top: 5px solid #003399; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #eef2f3; display: flex; justify-content: center; padding: 20px; gap: 20px; margin: 0; }
+        .sidebar { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 320px; display: flex; flex-direction: column; gap: 15px; height: fit-content; }
+        canvas { border-radius: 12px; box-shadow: 0 15px 45px rgba(0,0,0,0.2); cursor: move; background: #fff; max-width: 550px; height: auto; }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,30,0.85); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { width: 60px; height: 60px; border: 6px solid rgba(255,255,255,0.2); border-top: 6px solid #ffc107; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        button { background: #003399; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 6px; font-weight: bold; }
+        button { background: #003399; color: white; border: none; padding: 14px; cursor: pointer; border-radius: 8px; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #002266; transform: translateY(-2px); }
+        label { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-<div id="loader" class="loading-overlay">
+<div id="loadingOverlay" class="loader">
     <div class="spinner"></div>
-    <div id="loadText">AI is removing background...</div>
+    <h2 style="margin:0">Lakhani AI is Processing...</h2>
+    <p style="opacity:0.8">This may take 15-20 seconds on the first run.</p>
 </div>
 
 <div class="sidebar">
-    <h2 style="color:#003399; margin:0; text-align:center;">LAKHANI AI</h2>
+    <h1 style="color:#003399; margin:0; font-size: 24px; text-align: center;">VARDAAN</h1>
+    
+    <label>1. Company Logo</label>
     <input type="file" id="logoLoader" accept="image/*">
-    <label style="font-size: 11px;">UPLOAD PRODUCT</label>
+    
+    <label>2. Shoe Product Photo</label>
     <input type="file" id="imageLoader" accept="image/*">
-    <label style="font-size: 11px;">RESIZE</label>
-    <input type="range" id="sizeSlider" min="10" max="250" value="80">
+    
+    <label>Product Size</label>
+    <input type="range" id="sizeSlider" min="10" max="250" value="85">
+
+    <label>Code & Price</label>
     <input type="text" id="prodName" value="#GP4203">
     <input type="text" id="prodPrice" value="₹ 279.00">
-    <button onclick="downloadImage()">SAVE POSTER</button>
+
+    <button onclick="downloadImage()">DOWNLOAD POSTER</button>
+    <p style="font-size: 11px; color: #999; text-align: center;">Drag the shoe on the canvas to move it.</p>
 </div>
 
 <canvas id="posterCanvas" width="800" height="1000"></canvas>
@@ -38,29 +51,43 @@
 <script>
     const canvas = document.getElementById('posterCanvas');
     const ctx = canvas.getContext('2d');
-    const loader = document.getElementById('loader');
+    const loadingOverlay = document.getElementById('loadingOverlay');
     
     let productImg = null, logoImg = null;
     let prodX = 400, prodY = 550;
     let isDragging = false;
 
-    // AI BG Removal
+    // --- CORE AI FIX ---
     document.getElementById('imageLoader').onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        loader.style.display = 'flex';
+
+        loadingOverlay.style.display = 'flex';
+
         try {
-            const blob = await imglyRemoveBackground(file);
+            // Pointing to the official asset location to fix GitHub/CORS errors
+            const config = {
+                publicPath: "https://staticimgly.com/@imgly/background-removal-data/1.4.5/dist/",
+                debug: true,
+                device: 'cpu' // CPU is most compatible for web users
+            };
+
+            const blob = await imglyRemoveBackground(file, config);
             const img = new Image();
-            img.onload = () => { productImg = img; drawPoster(); loader.style.display = 'none'; };
+            img.onload = () => {
+                productImg = img;
+                drawPoster();
+                loadingOverlay.style.display = 'none';
+            };
             img.src = URL.createObjectURL(blob);
         } catch (err) {
-            alert("AI error. This usually happens on local files. GitHub/Netlify link will fix this!");
-            loader.style.display = 'none';
+            console.error("AI Error:", err);
+            loadingOverlay.style.display = 'none';
+            alert("Security Block: Please try using Google Chrome or clear your browser cache (Ctrl+F5).");
         }
     };
 
-    // Standard Handlers
+    // --- UI LOGIC ---
     document.getElementById('logoLoader').onchange = (e) => {
         const reader = new FileReader();
         reader.onload = (f) => {
@@ -82,43 +109,57 @@
         }
     };
 
-    ['sizeSlider', 'prodName', 'prodPrice'].forEach(id => document.getElementById(id).oninput = drawPoster);
+    ['sizeSlider', 'prodName', 'prodPrice'].forEach(id => {
+        document.getElementById(id).oninput = drawPoster;
+    });
 
     function drawPoster() {
+        // Background Gradient
         const grad = ctx.createLinearGradient(0, 0, 0, 1000);
-        grad.addColorStop(0, '#FFC107'); grad.addColorStop(1, '#FB8C00');
+        grad.addColorStop(0, '#FFC107'); 
+        grad.addColorStop(1, '#FB8C00'); 
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, 800, 1000);
 
+        // Center Glow
         const glow = ctx.createRadialGradient(400, 500, 0, 400, 500, 450);
         glow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
         glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = glow;
         ctx.fillRect(0, 0, 800, 1000);
 
-        if (logoImg) ctx.drawImage(logoImg, 510, 60, 240, (logoImg.height/logoImg.width)*240);
-        ctx.textAlign = "right";
-        ctx.fillStyle = "#003399"; ctx.font = "bold 32px Arial";
-        ctx.fillText(document.getElementById('prodName').value, 750, 210);
-        ctx.fillStyle = "#333"; ctx.font = "bold 45px Arial";
-        ctx.fillText(document.getElementById('prodPrice').value, 750, 260);
+        // Logo
+        if (logoImg) {
+            const aspect = logoImg.height / logoImg.width;
+            ctx.drawImage(logoImg, 510, 60, 240, 240 * aspect);
+        }
 
+        // Text
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#003399"; ctx.font = "bold 34px Arial";
+        ctx.fillText(document.getElementById('prodName').value, 750, 210);
+        ctx.fillStyle = "#333"; ctx.font = "bold 48px Arial";
+        ctx.fillText(document.getElementById('prodPrice').value, 750, 265);
+
+        // Product
         if (productImg) {
             ctx.save();
-            ctx.shadowBlur = 30; ctx.shadowColor = "rgba(0,0,0,0.2)";
-            const scale = (document.getElementById('sizeSlider').value / 100) * (600 / productImg.width);
+            ctx.shadowBlur = 35; ctx.shadowColor = "rgba(0,0,0,0.25)";
+            const scale = (document.getElementById('sizeSlider').value / 100) * (650 / productImg.width);
             const w = productImg.width * scale, h = productImg.height * scale;
             ctx.drawImage(productImg, prodX - w/2, prodY - h/2, w, h);
             ctx.restore();
         }
-        ctx.textAlign = "center"; ctx.fillStyle = "white"; ctx.font = "bold 100px Arial";
-        ctx.fillText("LAKHANI", 400, 940);
+
+        // Branding
+        ctx.textAlign = "center"; ctx.fillStyle = "white"; ctx.font = "bold 110px Arial";
+        ctx.fillText("LAKHANI", 400, 930);
     }
 
     function downloadImage() {
         const link = document.createElement('a');
         link.download = 'Lakhani-Poster.png';
-        link.href = canvas.toDataURL();
+        link.href = canvas.toDataURL('image/png');
         link.click();
     }
     drawPoster();
