@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lakhani Local Pro Editor</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; display: flex; padding: 20px; gap: 20px; justify-content: center; }
+        .sidebar { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; display: flex; flex-direction: column; gap: 10px; }
+        canvas { border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); cursor: move; background: #fff; max-width: 500px; height: auto; }
+        label { font-weight: bold; font-size: 11px; color: #555; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-save { background: #003399; color: white; border: none; padding: 12px; cursor: pointer; border-radius: 6px; font-weight: bold; margin-top: 10px; }
+        .info-box { font-size: 12px; background: #e7f3ff; padding: 10px; border-radius: 5px; color: #004085; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 style="color:#003399; margin:0; text-align:center;">LAKHANI VARDAAN</h2>
+    
+    <div class="info-box">
+        <b>Local Mode:</b> Drag the shoe to position. Use the <b>Crop Size</b> slider to hide the background around the shoe!
+    </div>
+
+    <label>1. LOGO</label>
+    <input type="file" id="logoLoader" accept="image/*">
+    
+    <label>2. PRODUCT PHOTO</label>
+    <input type="file" id="imageLoader" accept="image/*">
+
+    <label>PRODUCT SIZE</label>
+    <input type="range" id="sizeSlider" min="10" max="200" value="80">
+
+    <label>CROP RADIUS (Hide Original BG)</label>
+    <input type="range" id="cropSlider" min="50" max="500" value="300">
+
+    <label>PRODUCT INFO</label>
+    <input type="text" id="prodName" value="#GP4203">
+    <input type="text" id="prodPrice" value="₹ 279.00">
+
+    <button class="btn-save" onclick="downloadImage()">DOWNLOAD POSTER</button>
+</div>
+
+<canvas id="posterCanvas" width="800" height="1000"></canvas>
+
+<script>
+    const canvas = document.getElementById('posterCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let productImg = null, logoImg = null;
+    let prodX = 400, prodY = 550;
+    let isDragging = false;
+
+    // Loaders
+    document.getElementById('logoLoader').onchange = (e) => loadFile(e, 'logo');
+    document.getElementById('imageLoader').onchange = (e) => loadFile(e, 'prod');
+
+    function loadFile(e, type) {
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            const img = new Image();
+            img.onload = () => { 
+                if(type === 'logo') logoImg = img; 
+                else productImg = img; 
+                drawPoster(); 
+            };
+            img.src = f.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    }
+
+    // Dragging
+    canvas.onmousedown = () => isDragging = true;
+    window.onmouseup = () => isDragging = false;
+    canvas.onmousemove = (e) => {
+        if (isDragging && productImg) {
+            const rect = canvas.getBoundingClientRect();
+            prodX = (e.clientX - rect.left) * (800 / rect.width);
+            prodY = (e.clientY - rect.top) * (1000 / rect.height);
+            drawPoster();
+        }
+    };
+
+    // Live Updates
+    ['sizeSlider', 'cropSlider', 'prodName', 'prodPrice'].forEach(id => {
+        document.getElementById(id).oninput = drawPoster;
+    });
+
+    function drawPoster() {
+        // 1. Background
+        const grad = ctx.createLinearGradient(0, 0, 0, 1000);
+        grad.addColorStop(0, '#FFC107'); grad.addColorStop(1, '#FB8C00');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 1000);
+
+        // 2. Main Glow (Behind Product)
+        const glow = ctx.createRadialGradient(400, 500, 0, 400, 500, 450);
+        glow.addColorStop(0, 'rgba(255, 255, 255, 0.5)');
+        glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, 800, 1000);
+
+        // 3. Logo & Text
+        if (logoImg) ctx.drawImage(logoImg, 510, 60, 240, (logoImg.height/logoImg.width)*240);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#003399"; ctx.font = "bold 32px Arial";
+        ctx.fillText(document.getElementById('prodName').value, 750, 210);
+        ctx.fillStyle = "#333"; ctx.font = "bold 45px Arial";
+        ctx.fillText(document.getElementById('prodPrice').value, 750, 260);
+
+        // 4. Product with "Manual Crop" (Workaround for No AI)
+        if (productImg) {
+            ctx.save();
+            
+            // Create a circular "window" to hide the shoe's original background
+            ctx.beginPath();
+            const cropR = document.getElementById('cropSlider').value;
+            ctx.arc(prodX, prodY, cropR, 0, Math.PI * 2);
+            ctx.clip(); 
+
+            // Draw the shoe
+            const scale = (document.getElementById('sizeSlider').value / 100) * (700 / productImg.width);
+            const w = productImg.width * scale, h = productImg.height * scale;
+            ctx.drawImage(productImg, prodX - w/2, prodY - h/2, w, h);
+            
+            ctx.restore();
+            
+            // Add a soft edge ring to make the crop look like a "feature"
+            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+            ctx.lineWidth = 5;
+            ctx.stroke();
+        }
+
+        // 5. Brand Footer
+        ctx.textAlign = "center"; ctx.fillStyle = "white"; ctx.font = "bold 100px Arial";
+        ctx.fillText("LAKHANI", 400, 940);
+    }
+
+    function downloadImage() {
+        const link = document.createElement('a');
+        link.download = 'Lakhani-Poster.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+    drawPoster();
+</script>
+</body>
+</html>
