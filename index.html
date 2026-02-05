@@ -8,22 +8,24 @@
         :root { --primary: #003399; --accent: #FFC107; --bg: #f0f2f5; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
+        /* Sidebar Styling */
         .sidebar { width: 340px; background: white; border-right: 1px solid #ddd; padding: 25px; display: flex; flex-direction: column; gap: 15px; box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; }
         .preview-area { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: #dfe4ea; }
-        canvas { max-height: 95vh; max-width: 100%; border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); cursor: move; }
+        canvas { max-height: 95vh; max-width: 100%; border-radius: 12px; box-shadow: 0 25px 70px rgba(0,0,0,0.25); cursor: move; }
 
+        /* Controls */
         .input-group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; }
-        input[type="text"], input[type="range"] { padding: 10px; border: 1px solid #ddd; border-radius: 6px; }
+        label { font-size: 11px; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="text"], input[type="range"] { padding: 12px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; }
         
-        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #002266; }
+        button { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; margin-top: 10px; }
+        button:hover { background: #002266; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,51,153,0.3); }
 
         /* Professional Loader */
-        .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,30,0.9); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,30,0.92); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        .spinner { width: 60px; height: 60px; border: 5px solid rgba(255,255,255,0.1); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .status-msg { text-align: center; }
+        .status-msg { text-align: center; font-weight: 300; }
     </style>
 </head>
 <body>
@@ -31,44 +33,45 @@
 <div id="loader" class="loader-overlay">
     <div class="spinner"></div>
     <div class="status-msg">
-        <b style="font-size: 20px;">AI is Processing...</b><br>
-        <span style="opacity: 0.7;">Removing background via Hugging Face Cloud AI</span>
+        <b style="font-size: 22px; color: var(--accent);">AI IS WORKING</b><br>
+        <span id="loading-text" style="opacity: 0.8;">Removing background...</span>
     </div>
 </div>
 
 <div class="sidebar">
-    <h1 style="color: var(--primary); text-align: center; margin: 0 0 10px 0;">VARDAAN AI</h1>
-    <hr style="border:0; border-top: 1px solid #eee;">
+    <h1 style="color: var(--primary); text-align: center; margin: 0; font-size: 26px;">VARDAAN <span style="font-weight: 300; color: #999;">AI</span></h1>
+    <p style="font-size: 10px; color: #999; text-align: center; margin-bottom: 15px;">Powered by RMBG-1.4</p>
+    <hr style="border:0; border-top: 1px solid #eee; margin-bottom: 10px;">
 
     <div class="input-group">
-        <label>1. Upload Logo</label>
+        <label>1. Company Logo</label>
         <input type="file" id="logoLoader" accept="image/*">
     </div>
 
     <div class="input-group">
-        <label>2. Upload Shoe Photo</label>
+        <label>2. Shoe Photo</label>
         <input type="file" id="imageLoader" accept="image/*">
     </div>
 
     <div class="input-group">
-        <label>Shoe Scale</label>
+        <label>Scale Shoe</label>
         <input type="range" id="sizeSlider" min="10" max="250" value="85">
     </div>
 
     <div class="input-group">
-        <label>Product Code</label>
-        <input type="text" id="prodName" value="#LAK-PRO-2026">
+        <label>Model Number</label>
+        <input type="text" id="prodName" value="#LAK-9001">
     </div>
 
     <div class="input-group">
-        <label>Price Text</label>
-        <input type="text" id="prodPrice" value="₹ 549.00">
+        <label>Display Price</label>
+        <input type="text" id="prodPrice" value="₹ 499.00">
     </div>
 
-    <button onclick="downloadImage()">Download HD Poster</button>
-    <p style="font-size: 11px; color: #999; text-align: center; line-height: 1.4;">
-        AI processing takes 3-5 seconds.<br>Drag the shoe on the canvas to position it.
-    </p>
+    <button onclick="downloadImage()">DOWNLOAD POSTER</button>
+    <div style="margin-top: 20px; font-size: 12px; color: #666; background: #fff9e6; padding: 10px; border-radius: 8px; border-left: 4px solid var(--accent);">
+        <b>Tip:</b> If the AI fails the first time, try once more. It usually means the AI was "sleeping" and needed a moment to wake up!
+    </div>
 </div>
 
 <div class="preview-area">
@@ -76,21 +79,23 @@
 </div>
 
 <script>
-    const HF_TOKEN = "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"; // Using your token
+    const HF_TOKEN = "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"; 
     const canvas = document.getElementById('posterCanvas');
     const ctx = canvas.getContext('2d');
     const loader = document.getElementById('loader');
+    const loadingText = document.getElementById('loading-text');
 
     let productImg = null, logoImg = null;
     let prodX = 400, prodY = 550;
     let isDragging = false;
 
-    // --- HUGGING FACE AI LOGIC ---
+    // --- AI PROCESSING ---
     document.getElementById('imageLoader').onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         loader.style.display = 'flex';
+        loadingText.innerText = "Analyzing shoe edges...";
 
         try {
             const response = await fetch(
@@ -105,7 +110,14 @@
                 }
             );
 
-            if (!response.ok) throw new Error("AI Server Busy. Try again in a few seconds.");
+            // If 503, the model is loading. We wait and try again automatically.
+            if (response.status === 503) {
+                loadingText.innerText = "Model is waking up... please wait 10 seconds.";
+                setTimeout(() => document.getElementById('imageLoader').dispatchEvent(new Event('change')), 10000);
+                return;
+            }
+
+            if (!response.ok) throw new Error("Cloud AI is currently busy.");
 
             const blob = await response.blob();
             const img = new Image();
@@ -114,4 +126,90 @@
                 drawPoster();
                 loader.style.display = 'none';
             };
-            img.src = URL.createObjectURL(blob
+            img.src = URL.createObjectURL(blob);
+        } catch (err) {
+            alert(err.message);
+            loader.style.display = 'none';
+        }
+    };
+
+    // --- LOGO & UI ---
+    document.getElementById('logoLoader').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            const img = new Image();
+            img.onload = () => { logoImg = img; drawPoster(); };
+            img.src = f.target.result;
+        };
+        reader.readAsDataURL(e.target.files[0]);
+    };
+
+    canvas.onmousedown = () => isDragging = true;
+    window.onmouseup = () => isDragging = false;
+    canvas.onmousemove = (e) => {
+        if (isDragging && productImg) {
+            const rect = canvas.getBoundingClientRect();
+            prodX = (e.clientX - rect.left) * (800 / rect.width);
+            prodY = (e.clientY - rect.top) * (1000 / rect.height);
+            drawPoster();
+        }
+    };
+
+    ['sizeSlider', 'prodName', 'prodPrice'].forEach(id => document.getElementById(id).oninput = drawPoster);
+
+    function drawPoster() {
+        // 1. Background Gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, 1000);
+        grad.addColorStop(0, '#FFC107'); 
+        grad.addColorStop(1, '#FB8C00');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 800, 1000);
+
+        // 2. Stylish Spotlight
+        const glow = ctx.createRadialGradient(400, 500, 50, 400, 500, 500);
+        glow.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+        glow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, 800, 1000);
+
+        // 3. Logo Rendering
+        if (logoImg) {
+            const aspect = logoImg.height / logoImg.width;
+            ctx.drawImage(logoImg, 510, 60, 240, 240 * aspect);
+        }
+
+        // 4. Poster Text
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#003399"; ctx.font = "bold 34px Arial";
+        ctx.fillText(document.getElementById('prodName').value, 750, 210);
+        ctx.fillStyle = "#333"; ctx.font = "bold 50px Arial";
+        ctx.fillText(document.getElementById('prodPrice').value, 750, 270);
+
+        // 5. Shoe Rendering with Soft Shadow
+        if (productImg) {
+            ctx.save();
+            ctx.shadowBlur = 50; ctx.shadowColor = "rgba(0,0,0,0.35)";
+            const scale = (document.getElementById('sizeSlider').value / 100) * (680 / productImg.width);
+            const w = productImg.width * scale, h = productImg.height * scale;
+            ctx.drawImage(productImg, prodX - w/2, prodY - h/2, w, h);
+            ctx.restore();
+        }
+
+        // 6. Brand Branding
+        ctx.textAlign = "center"; 
+        ctx.fillStyle = "white"; 
+        ctx.font = "bold 110px Arial";
+        ctx.letterSpacing = "4px";
+        ctx.fillText("LAKHANI", 400, 930);
+    }
+
+    function downloadImage() {
+        const link = document.createElement('a');
+        link.download = `Lakhani-Poster-${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+    }
+    drawPoster();
+</script>
+</body>
+</html>
